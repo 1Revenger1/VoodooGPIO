@@ -6,7 +6,7 @@
 //  Copyright © 2023 CoolStar. All rights reserved.
 //
 
-#include "../VoodooGPIO.hpp"
+#include "../VoodooGPIOIntel.hpp"
 
 #ifndef VoodooGPIOTigerLakeLP_hpp
 #define VoodooGPIOTigerLakeLP_hpp
@@ -436,7 +436,7 @@ static struct intel_community tgllp_communities[] = {
     TGL_LP_COMMUNITY(3, 260, 276, tgllp_community5_gpps),
 };
 
-class VoodooGPIOTigerLakeLP : public VoodooGPIO {
+class VoodooGPIOTigerLakeLP : public VoodooGPIOIntel {
     OSDeclareDefaultStructors(VoodooGPIOTigerLakeLP);
 
     bool start(IOService *provider) override;

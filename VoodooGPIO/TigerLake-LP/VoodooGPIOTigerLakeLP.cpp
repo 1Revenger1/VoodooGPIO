@@ -8,7 +8,7 @@
 
 #include "VoodooGPIOTigerLakeLP.hpp"
 
-OSDefineMetaClassAndStructors(VoodooGPIOTigerLakeLP, VoodooGPIO);
+OSDefineMetaClassAndStructors(VoodooGPIOTigerLakeLP, VoodooGPIOIntel);
 
 bool VoodooGPIOTigerLakeLP::start(IOService *provider) {
     this->pins = tgllp_pins;

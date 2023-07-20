@@ -357,9 +357,9 @@ bool VoodooGPIOAMD::start(IOService *provider) {
 
     this->isInterruptBusy = true;
 
-    this->workLoop = getWorkLoop();
-    if (!this->workLoop) {
-        IOLog("%s::Failed to get workloop!\n", this->getName());
+    workLoop = IOWorkLoop::workLoop();
+    if (!workLoop) {
+        IOLog("%s::Failed to set workloop!\n", getName());
         stop(provider);
         return false;
     }
@@ -374,16 +374,18 @@ bool VoodooGPIOAMD::start(IOService *provider) {
 
     IOLog("%s::VoodooGPIO Init!\n", this->getName());
 
-    this->saved_regs = IONewZero(UInt32, this->npins);
+    this->saved_regs = IONew(UInt32, this->npins);
     if (!this->saved_regs) {
         IOLog("%s::Failed to allocate saved_regs!\n", this->getName());
         stop(provider);
         return false;
     }
+    memset(this->saved_regs, 0, sizeof(UInt32) * this->npins);
 
     this->mmap = provider->mapDeviceMemoryWithIndex(0);
     if (!this->mmap) {
         IOLog("%s:VoodooGPIO error mapping base 0\n", this->getName());
+        stop(provider);
         return false;
     }
     this->base = this->mmap->getVirtualAddress();
@@ -391,16 +393,44 @@ bool VoodooGPIOAMD::start(IOService *provider) {
     this->registered_pin_list = OSArray::withCapacity(2);
     if (!this->registered_pin_list) {
         IOLog("%s::Failed to allocate registered_pin_list!\n", this->getName());
+        stop(provider);
         return false;
     }
 
     this->isInterruptBusy = false;
     this->controllerIsAwake = true;
 
-    this->pinInterruptActionOwners = IONewZero(OSObject*, this->npins);
-    this->pinInterruptAction = IONewZero(IOInterruptAction, this->npins);
-    this->interruptTypes = IONewZero(unsigned, this->npins);
-    this->pinInterruptRefcons = IONewZero(void *, this->npins);
+    this->pinInterruptActionOwners = IONew(OSObject*, this->npins);
+    if (!this->pinInterruptActionOwners) {
+        IOLog("%s::Failed to allocate pinInterruptActionOwners!\n", this->getName());
+        stop(provider);
+        return false;
+    }
+    memset(this->pinInterruptActionOwners, 0, sizeof(OSObject*) * this->npins);
+
+    this->pinInterruptAction = IONew(IOInterruptAction, this->npins);
+    if (!this->pinInterruptAction) {
+        IOLog("%s::Failed to allocate pinInterruptAction!\n", this->getName());
+        stop(provider);
+        return false;
+    }
+    memset(this->pinInterruptAction, 0, sizeof(IOInterruptAction) * this->npins);
+
+    this->interruptTypes = IONew(unsigned, this->npins);
+    if (!this->interruptTypes) {
+        IOLog("%s::Failed to allocate interruptTypes!\n", this->getName());
+        stop(provider);
+        return false;
+    }
+    memset(this->interruptTypes, 0, sizeof(unsigned) * this->npins);
+
+    this->pinInterruptRefcons = IONew(void *, this->npins);
+    if (!this->pinInterruptRefcons) {
+        IOLog("%s::Failed to allocate pinInterruptRefcons!\n", this->getName());
+        stop(provider);
+        return false;
+    }
+    memset(this->pinInterruptRefcons, 0, sizeof(void *) * this->npins);
 
     this->amd_gpio_irq_init();
 
@@ -436,13 +466,13 @@ void VoodooGPIOAMD::stop(IOService *provider) {
     IOLog("%s::VoodooGPIO stop!\n", this->getName());
 
     if (this->command_gate) {
-        this->workLoop->removeEventSource(this->command_gate);
+        if (this->workLoop) {
+            this->workLoop->removeEventSource(this->command_gate);
+        }
         OSSafeReleaseNULL(this->command_gate);
     }
 
-    if (this->mmap) {
-        OSSafeReleaseNULL(mmap);
-    }
+    OSSafeReleaseNULL(mmap);
 
     if (this->registered_pin_list) {
         if (this->registered_pin_list->getCount() > 0) {

@@ -66,11 +66,11 @@ struct pinctrl_pin_desc {
 #define TryLog(args...) do { if (ml_get_interrupts_enabled()) IOLog(args); } while (0)
 
 class VoodooGPIO : public IOService {
-    OSDeclareDefaultStructors(VoodooGPIO);
+    OSDeclareAbstractStructors(VoodooGPIO);
 
 protected:
     const struct pinctrl_pin_desc *pins = nullptr;
-    size_t npins { 0 };
+    size_t npins {0};
     bool controllerIsAwake = false;
 
     IOWorkLoop *workLoop = nullptr;
@@ -78,10 +78,10 @@ protected:
     OSArray* registered_pin_list = nullptr;
     bool isInterruptBusy = false;
 
-    IOWorkLoop* getWorkLoop();
+    IOWorkLoop* getWorkLoop() const override;
 
- public:
-    virtual IOReturn setInterruptTypeForPin(int pin, int type);
+public:
+    virtual IOReturn setInterruptTypeForPin(int pin, int type) = 0;
 };
 
 #endif /* VoodooGPIO_h */

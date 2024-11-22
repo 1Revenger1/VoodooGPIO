@@ -876,10 +876,8 @@ void VoodooGPIOIntel::intel_gpio_pin_irq_handler(unsigned hw_pin) {
         handler(owner, refcon, this, pad_group_i + pad_group->gpio_base);
     }
 
-    if (community->interruptTypes[community_i] & IRQ_TYPE_LEVEL_MASK) {
-        /* For Level interrupts, we need to clear the interrupt status or we get too many interrupts */
-        writel(static_cast<UInt32>(BIT(pad_group_i)), pending_address);
-    }
+    /* Clear interrupt status */
+    writel(static_cast<UInt32>(BIT(pad_group_i)), pending_address);
 }
 
 /**

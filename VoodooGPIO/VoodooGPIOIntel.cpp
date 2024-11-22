@@ -891,11 +891,19 @@ void VoodooGPIOIntel::intel_gpio_pin_irq_handler(unsigned hw_pin) {
  * @param interruptType variable to store interrupt type for specified GPIO pin.
  */
 IOReturn VoodooGPIOIntel::getInterruptType(int pin, int *interruptType) {
-    SInt32 hw_pin = intel_gpio_to_pin(pin, nullptr, nullptr);
+    struct intel_community *community;
+    SInt32 hw_pin = intel_gpio_to_pin(pin, &community, nullptr);
     if (hw_pin < 0)
         return kIOReturnNoInterrupt;
-
-    return getProvider()->getInterruptType(0, interruptType);
+    
+    unsigned communityidx = hw_pin - community->pin_base;
+    if (community->interruptTypes[communityidx] & IRQ_TYPE_LEVEL_MASK) {
+        *interruptType = kIOInterruptTypeLevel;
+    } else {
+        *interruptType = kIOInterruptTypeEdge;
+    }
+    
+    return kIOReturnSuccess;
 }
 
 /**

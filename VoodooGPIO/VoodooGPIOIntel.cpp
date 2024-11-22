@@ -696,13 +696,6 @@ bool VoodooGPIOIntel::start(IOService *provider) {
             continue;
         }
         memset(communities[i].pinInterruptRefcons, 0, sizeof(void *) * communities[i].npins);
-
-        communities[i].isActiveCommunity = IONew(bool, 1);
-        if (!communities[i].isActiveCommunity) {
-            IOLog("%s::Error allocating isActiveCommunity for community %d\n", getName(), i);
-            continue;
-        }
-        *communities[i].isActiveCommunity = false;
     }
     nInactiveCommunities = (UInt32)ncommunities - 1;
 
@@ -766,7 +759,6 @@ void VoodooGPIOIntel::stop(IOService *provider) {
         IOSafeDeleteNULL(communities[i].pinInterruptAction, IOInterruptAction, communities[i].npins);
         IOSafeDeleteNULL(communities[i].interruptTypes, unsigned, communities[i].npins);
         IOSafeDeleteNULL(communities[i].pinInterruptRefcons, void*, communities[i].npins);
-        IOSafeDeleteNULL(communities[i].isActiveCommunity, bool, 1);
         OSSafeReleaseNULL(communities[i].mmap);
     }
 
@@ -930,7 +922,6 @@ IOReturn VoodooGPIOIntel::registerInterrupt(int pin, OSObject *target, IOInterru
         community->pinInterruptActionOwners[communityidx] = target;
         community->pinInterruptAction[communityidx] = handler;
         community->pinInterruptRefcons[communityidx] = refcon;
-        *community->isActiveCommunity = true;
     } else {
         IOLog("%s::Unable to allocate interrupt pin", getName());
         return kIOReturnNoResources;
@@ -1018,8 +1009,6 @@ IOReturn VoodooGPIOIntel::setInterruptTypeForPin(int pin, int type) {
 
     unsigned communityidx = hw_pin - community->pin_base;
     community->interruptTypes[communityidx] = type;
-    if (type & IRQ_TYPE_LEVEL_MASK)
-        *community->isActiveCommunity = true;
     return kIOReturnSuccess;
 }
 

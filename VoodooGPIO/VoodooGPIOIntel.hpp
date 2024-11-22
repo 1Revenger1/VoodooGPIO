@@ -104,7 +104,6 @@ struct intel_community {
     struct intel_padgroup *gpps;
     size_t ngpps;
     bool gpps_alloc;
-    bool *isActiveCommunity;
     /* Reserved for the core driver */
     IOMemoryMap *mmap;
     IOVirtualAddress regs;

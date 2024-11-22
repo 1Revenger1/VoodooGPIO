@@ -978,7 +978,6 @@ IOReturn VoodooGPIOIntel::enableInterrupt(int pin) {
 
     unsigned communityidx = hw_pin - community->pin_base;
     if (community->pinInterruptActionOwners[communityidx]) {
-        intel_gpio_irq_set_type(hw_pin, community->interruptTypes[communityidx]);
         intel_gpio_irq_mask_unmask(hw_pin, false);
         return getProvider()->enableInterrupt(0);
     }
@@ -1009,6 +1008,7 @@ IOReturn VoodooGPIOIntel::setInterruptTypeForPin(int pin, int type) {
 
     unsigned communityidx = hw_pin - community->pin_base;
     community->interruptTypes[communityidx] = type;
+    intel_gpio_irq_set_type(hw_pin, type);
     return kIOReturnSuccess;
 }
 
